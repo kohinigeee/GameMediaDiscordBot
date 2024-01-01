@@ -13,10 +13,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Ast struct {
-	x int
-}
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {

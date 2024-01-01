@@ -298,34 +298,4 @@ func onInvalidCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func onTestCommand(s *discordgo.Session, m *discordgo.MessageCreate, manager *BotManager) {
-	// tweets := make([]xapi.XTweet, 0)
-	// cnt := 0
-	// for _, user := range manager.targetUsers {
-	// 	if cnt > 0 {
-	// 		break
-	// 	}
-
-	// 	gotTweets, err := manager.client.GetTweetsByUserId(&user, 5, nil)
-	// 	if err != nil {
-	// 		fmt.Println("Error : ", err)
-	// 		continue
-	// 	}
-	// 	tweets = append(tweets, gotTweets...)
-	// 	cnt++
-	// }
-
-	// channelId := m.ChannelID
-	// for idx, tweet := range tweets {
-	// 	author := tweet.Author
-	// 	link := fmt.Sprintf("https://twitter.com/%s/status/%s", author.Username, tweet.Id)
-	// 	msg := ""
-	// 	if idx > 0 {
-	// 		msg += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-	// 	}
-	// 	msg += fmt.Sprintf("### 【 @%s Posted！ ([Tweet](%s)) 】\n", author.Username, link)
-	// 	msg += ">>> "
-	// 	msg += tweet.Text
-	// 	manager.discordgoSession.ChannelMessageSend(channelId, msg)
-	// 	log.Printf("channelId = %s\ntweet = %s\n", channelId, msg)
-	// }
 }
