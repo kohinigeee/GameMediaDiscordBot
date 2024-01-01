@@ -271,8 +271,16 @@ func onSettingsCommand(s *discordgo.Session, m *discordgo.MessageCreate, manager
 	msg := "設定値一覧\n"
 	msg += fmt.Sprintf("バッチ処理の間隔 : %d(分)\n", manager.batchDurationMinu)
 
-	nextLoaclTime := lib.UTCtimeToLoaclTime(manager.GetNextBatchTime())
-	msg += fmt.Sprintf("次回のバッチ処理 : %s\n", nextLoaclTime)
+	nextLocalTimeStr, err := lib.UTCtimeToLoaclTime(manager.GetNextBatchTime())
+	timeZone := "Asia/Tokyo"
+
+	if err != nil {
+		DifTime := time.Hour * 9
+		nextLocal := manager.GetNextBatchTime().Add(DifTime)
+		nextLocalTimeStr = nextLocal.Format("2006-01-02 15:04:05")
+		timeZone = "Japan"
+	}
+	msg += fmt.Sprintf("次回のバッチ処理 : %s (%s)\n", nextLocalTimeStr, timeZone)
 
 	sendMessage(s, m.ChannelID, msg)
 }
