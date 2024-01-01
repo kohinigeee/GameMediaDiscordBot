@@ -49,8 +49,8 @@ func (client *XClinet) GetUser(userName string) (XUser, error) {
 	return result.Data, nil
 }
 
-func (client *XClinet) GetTweetsByUserId(userId string, maxResults int, startDate *time.Time) ([]XTweet, error) {
-	url := fmt.Sprintf("%s/users/%s/tweets?max_results=%d", XAPI_BASE_URL, userId, maxResults)
+func (client *XClinet) GetTweetsByUserId(user *XUser, maxResults int, startDate *time.Time) ([]XTweet, error) {
+	url := fmt.Sprintf("%s/users/%s/tweets?max_results=%d", XAPI_BASE_URL, user.Id, maxResults)
 	if startDate != nil {
 		dateStr := startDate.Format(time.RFC3339)
 		url += fmt.Sprintf("&start_time=%s", dateStr)
@@ -67,5 +67,8 @@ func (client *XClinet) GetTweetsByUserId(userId string, maxResults int, startDat
 		return nil, err
 	}
 
+	for idx := range result.Data {
+		result.Data[idx].Author = *user
+	}
 	return result.Data, nil
 }

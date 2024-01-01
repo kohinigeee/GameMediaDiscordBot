@@ -8,6 +8,7 @@ type XTweet struct {
 	EditHistoryTweetIds []string `json:"edit_history_tweet_ids"`
 	Id                  string   `json:"id"`
 	Text                string   `json:"text"`
+	Author              XUser
 }
 
 type XUser struct {

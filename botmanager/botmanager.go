@@ -2,6 +2,7 @@ package botmanager
 
 import (
 	"fmt"
+	"gamemediabot/lib"
 	"gamemediabot/xapi"
 	"log"
 	"strconv"
@@ -22,6 +23,7 @@ type BotManager struct {
 	discordgoSession  *discordgo.Session
 	batchDurationMinu int
 	lastBatchDate     time.Time
+	nextBatchDate     time.Time
 	isRunningBatch    bool
 }
 
@@ -44,6 +46,8 @@ func NewBotManager(discordgoSession *discordgo.Session, client *xapi.XClinet, ba
 		lastBatchDate:     time.Now().UTC(),
 		isRunningBatch:    false,
 	}
+
+	manager.nextBatchDate = manager.lastBatchDate.Add(time.Duration(batchDurationMinu) * time.Minute)
 
 	initialTargetUsers := []string{
 		"AUTOMATONJapan",
@@ -68,6 +72,10 @@ func (manager *BotManager) setBatchDurationMinu(minute int) {
 	manager.batchDurationMinu = minute
 }
 
+func (manager *BotManager) GetNextBatchTime() time.Time {
+	return manager.nextBatchDate
+}
+
 func (manager *BotManager) AddAllowedChannel(channelId string) {
 	manager.allowedChannels[channelId] = true
 }
@@ -83,7 +91,7 @@ func (manager *BotManager) getTweets() []xapi.XTweet {
 	startTime := manager.lastBatchDate.Add(2 * time.Second)
 
 	for _, user := range manager.targetUsers {
-		gotTweets, err := manager.client.GetTweetsByUserId(user.Id, maxResults, &startTime)
+		gotTweets, err := manager.client.GetTweetsByUserId(&user, maxResults, &startTime)
 		if err != nil {
 			continue
 		}
@@ -94,9 +102,18 @@ func (manager *BotManager) getTweets() []xapi.XTweet {
 }
 
 func (manager *BotManager) sentBatchMessages(channelId string, tweets []xapi.XTweet) {
-	for _, tweet := range tweets {
-		manager.discordgoSession.ChannelMessageSend(channelId, tweet.Text)
-		log.Printf("channelId = %s : tweet = %s\n", channelId, tweet.Text)
+	for idx, tweet := range tweets {
+		author := tweet.Author
+		link := fmt.Sprintf("https://twitter.com/%s/status/%s", author.Username, tweet.Id)
+		msg := ""
+		if idx > 0 {
+			msg += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+		}
+		msg += fmt.Sprintf("### 【 @%s Posted！ ([Tweet](%s)) 】\n", author.Username, link)
+		msg += ">>> "
+		msg += tweet.Text
+		manager.discordgoSession.ChannelMessageSend(channelId, msg)
+		log.Printf("channelId = %s\ntweet = %s\n", channelId, msg)
 	}
 }
 
@@ -109,6 +126,7 @@ func (manager *BotManager) batchLoop() {
 		tweets := manager.getTweets()
 		//最終探索時間の更新
 		manager.lastBatchDate = time.Now().UTC()
+		manager.nextBatchDate = manager.lastBatchDate.Add(dulation)
 
 		for channelId := range manager.allowedChannels {
 			manager.sentBatchMessages(channelId, tweets)
@@ -161,6 +179,8 @@ func onDiscordMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		onTargetsCommand(s, m, manager)
 	case "settings":
 		onSettingsCommand(s, m, manager)
+	case "test":
+		onTestCommand(s, m, manager)
 	default:
 		onInvalidCommand(s, m)
 	}
@@ -247,8 +267,10 @@ func onTargetsCommand(s *discordgo.Session, m *discordgo.MessageCreate, manager 
 func onSettingsCommand(s *discordgo.Session, m *discordgo.MessageCreate, manager *BotManager) {
 	msg := "設定値一覧\n"
 	msg += fmt.Sprintf("バッチ処理の間隔 : %d(分)\n", manager.batchDurationMinu)
-	nextBathTime := manager.lastBatchDate.Add(time.Duration(manager.batchDurationMinu) * time.Minute)
-	msg += fmt.Sprintf("次回のバッチ処理 : %s\n", nextBathTime.Format("2006-01-02 15:04:05"))
+
+	nextLoaclTime := lib.UTCtimeToLoaclTime(manager.GetNextBatchTime())
+	msg += fmt.Sprintf("次回のバッチ処理 : %s\n", nextLoaclTime)
+
 	sendMessage(s, m.ChannelID, msg)
 }
 
@@ -273,4 +295,37 @@ func onHelpCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 func onInvalidCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 	msg := "不正なコマンドです。コマンド一覧は「!mediabot help」で確認できます。"
 	sendMessage(s, m.ChannelID, msg)
+}
+
+func onTestCommand(s *discordgo.Session, m *discordgo.MessageCreate, manager *BotManager) {
+	// tweets := make([]xapi.XTweet, 0)
+	// cnt := 0
+	// for _, user := range manager.targetUsers {
+	// 	if cnt > 0 {
+	// 		break
+	// 	}
+
+	// 	gotTweets, err := manager.client.GetTweetsByUserId(&user, 5, nil)
+	// 	if err != nil {
+	// 		fmt.Println("Error : ", err)
+	// 		continue
+	// 	}
+	// 	tweets = append(tweets, gotTweets...)
+	// 	cnt++
+	// }
+
+	// channelId := m.ChannelID
+	// for idx, tweet := range tweets {
+	// 	author := tweet.Author
+	// 	link := fmt.Sprintf("https://twitter.com/%s/status/%s", author.Username, tweet.Id)
+	// 	msg := ""
+	// 	if idx > 0 {
+	// 		msg += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+	// 	}
+	// 	msg += fmt.Sprintf("### 【 @%s Posted！ ([Tweet](%s)) 】\n", author.Username, link)
+	// 	msg += ">>> "
+	// 	msg += tweet.Text
+	// 	manager.discordgoSession.ChannelMessageSend(channelId, msg)
+	// 	log.Printf("channelId = %s\ntweet = %s\n", channelId, msg)
+	// }
 }
