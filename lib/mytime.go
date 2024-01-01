@@ -6,7 +6,7 @@ import (
 )
 
 func UTCtimeToLoaclTime(date time.Time) string {
-	loc, err := time.LoadLocation("Asia/Tokyo")
+	loc, err := time.LoadLocation("Japan")
 	dummy := ""
 
 	if err != nil {
