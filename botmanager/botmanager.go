@@ -544,7 +544,7 @@ func onSettingsCommand(arg *CommandArg, manager *BotManager) {
 	})
 	fileds = append(fileds, &discordgo.MessageEmbedField{
 		Name:   "保存ツイート数",
-		Value:  fmt.Sprintf("%d", len(manager.BatchTweetsCash)),
+		Value:  fmt.Sprintf("%d", len(manager.BatchTweetIDs)),
 		Inline: false,
 	})
 
