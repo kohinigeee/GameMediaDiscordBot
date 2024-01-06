@@ -715,7 +715,7 @@ func onFilterGetCommand(arg *CommandArg, manager *BotManager) {
 	}
 
 	sendCnt := 0
-	for idx, _ := range manager.BatchTweetsCash {
+	for idx := range manager.BatchTweetsCash {
 		if IsMatchFilter(&manager.BatchTweetsCash[idx], filter) {
 			embed := makeFilterNotionMessage(arg, manager, &manager.BatchTweetsCash[idx])
 			arg.s.ChannelMessageSendEmbed(thread.ID, embed)
@@ -1061,12 +1061,12 @@ func IsMatchFilter(btweet *BatchTweet, filter *Fileter) bool {
 	}
 
 	if len(filter.IncluedUserIDs) > 0 {
-		if _, exist := filter.IncluedUserIDs[btweet.Tweet.Author.Id]; !exist {
+		if _, exist := filter.IncluedUserIDs[btweet.Tweet.Author.Username]; !exist {
 			return false
 		}
 	}
 
-	if _, exist := filter.ExcluedUserIDs[btweet.Tweet.Author.Id]; exist {
+	if _, exist := filter.ExcluedUserIDs[btweet.Tweet.Author.Username]; exist {
 		return false
 	}
 
